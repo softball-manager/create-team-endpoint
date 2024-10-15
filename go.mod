@@ -1,4 +1,4 @@
-module softball-manager/endpoint-template
+module softball-manager/create-team-endpoint
 
 go 1.21.5
 
@@ -12,6 +12,8 @@ require (
 	github.com/softball-manager/common v1.0.2
 	go.uber.org/zap v1.27.0
 )
+
+replace github.com/softball-manager/common v1.0.2 => ../common/
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.31 // indirect

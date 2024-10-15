@@ -13,7 +13,7 @@ var (
 )
 
 type SuccessfulResponse struct {
-	PID    string `json:"pid"`
+	Tid    string `json:"tid"`
 	Status string `json:"status"`
 }
 
@@ -40,9 +40,9 @@ func formatResponse(resp interface{}, statusCode int) events.APIGatewayProxyResp
 	}
 }
 
-func CreateSuccessfulResponse(pid string) events.APIGatewayProxyResponse {
+func CreateSuccessfulResponse(tid string) events.APIGatewayProxyResponse {
 	resp := &SuccessfulResponse{
-		PID:    pid,
+		Tid:    tid,
 		Status: "Success",
 	}
 

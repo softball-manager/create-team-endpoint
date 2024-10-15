@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"softball-manager/endpoint-template/internal/pkg/appconfig"
-	"softball-manager/endpoint-template/internal/pkg/repository"
-	"softball-manager/endpoint-template/internal/pkg/request"
-	"softball-manager/endpoint-template/internal/pkg/response"
+	"softball-manager/create-team-endpoint/internal/pkg/appconfig"
+	"softball-manager/create-team-endpoint/internal/pkg/repository"
+	"softball-manager/create-team-endpoint/internal/pkg/request"
+	"softball-manager/create-team-endpoint/internal/pkg/response"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var putPlayerEndpoint = "put-player"
+var createTeamEndpoint = "create-team"
 var dynamoClient *dynamodb.Client
 var appCfg *appconfig.AppConfig
 
@@ -27,7 +27,7 @@ func init() {
 	env := commonCfg.GetEnvironment()
 
 	logger := log.GetLogger("info").With(zap.String(log.EnvLogKey, env))
-	logger.Sugar().Infof("initializing %s endpoint", putPlayerEndpoint)
+	logger.Sugar().Infof("initializing %s endpoint", createTeamEndpoint)
 
 	cfg, err := awsconfig.GetAWSConfig(context.TODO(), env)
 	if err != nil {
@@ -42,8 +42,8 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	pid := fmt.Sprintf("%s%s", dynamo.PlayerIDPrefix, uuid.New())
-	appCfg.Logger = appCfg.Logger.With(zap.String(log.PlayerIDLogKey, pid))
+	tid := fmt.Sprintf("%s%s", dynamo.TeamIDPrefix, uuid.New())
+	appCfg.Logger = appCfg.Logger.With(zap.String(log.TeamIDLogKey, tid))
 	logger := appCfg.GetLogger()
 	logger.Info("recieved event")
 
@@ -53,14 +53,14 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return response.CreateBadRequestResponse(), nil
 	}
 
-	repository := repository.NewRespository(ctx, appCfg, dynamoClient, fmt.Sprintf("%s-%s", dynamo.PlayerTableNamePrefix, appCfg.GetEnv()))
-	err = repository.PutPlayer(pid, validatedRequest.Name, validatedRequest.Positions)
+	repository := repository.NewRespository(ctx, appCfg, dynamoClient)
+	err = repository.CreateTeam(tid, validatedRequest.Name, validatedRequest.Players)
 	if err != nil {
 		logger.Error("error putting player into db", zap.Error(err))
 		return response.CreateInternalServerErrorResponse(), nil
 	}
 
-	return response.CreateSuccessfulResponse(pid), nil
+	return response.CreateSuccessfulResponse(tid), nil
 }
 
 func main() {

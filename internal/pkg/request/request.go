@@ -8,8 +8,8 @@ import (
 )
 
 type Request struct {
-	Name      string   `json:"name" validate:"required"`
-	Positions []string `json:"positions"`
+	Name    string   `json:"name" validate:"required"`
+	Players []string `json:"players"`
 }
 
 func ValidateRequest(request events.APIGatewayProxyRequest) (*Request, error) {

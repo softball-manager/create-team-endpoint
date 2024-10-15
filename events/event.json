@@ -1,8 +1,8 @@
 {
-    "body": "{\"name\": \"Test Player\", \"positions\": [\"2B\", \"3B\"], \"extraField\": \"test\"}",
-    "resource": "/player",
-    "path": "/player",
-    "httpMethod": "PUT",
+    "body": "{\"name\": \"Test Team\", \"players\": [\"Player#e35c3bc7-5293-4428-be2b-8d99049b4a22\"]}",
+    "resource": "/team",
+    "path": "/team",
+    "httpMethod": "POST",
     "isBase64Encoded": false,
     "queryStringParameters": null,
     "pathParameters": null,
@@ -46,9 +46,9 @@
         "userAgent": "Custom User Agent String",
         "user": null
       },
-      "path": "/dev/player",
-      "resourcePath": "/player",
-      "httpMethod": "PUT",
+      "path": "/dev/team",
+      "resourcePath": "/team",
+      "httpMethod": "POST",
       "apiId": "1234567890",
       "protocol": "HTTP/1.1"
     }

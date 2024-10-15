@@ -37,5 +37,5 @@ func (a *AppConfig) GetLogger() *zap.Logger {
 }
 
 func (a *AppConfig) ReadEnvVars() {
-	a.TableName = cfg.GetEnvVarStringOrDefault("PLAYERTABLENAME", fmt.Sprintf("%s-%s", dynamo.PlayerTableNamePrefix, cfg.LocalEnv))
+	a.TableName = cfg.GetEnvVarStringOrDefault("TEAMTABLENAME", fmt.Sprintf("%s-%s", dynamo.PlayerTableNamePrefix, cfg.LocalEnv))
 }

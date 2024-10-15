@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  softball-manager-api-put-player
+  softball-manager-api-create-team
 
-  Sample SAM Template for softball-manager-api-put-player
+  Sample SAM Template for softball-manager-api-create-team
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -29,11 +29,12 @@ Resources:
         CatchAll:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /player/
-            Method: PUT
+            Path: /team/
+            Method: POST
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          PLAYERTABLENAME: player-table-local
+          TEAMTABLENAME: team-table-local
+
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
@@ -54,7 +55,7 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   SoftballManagerAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/player/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/team/"
   SoftballManagerFunction:
     Description: First Lambda Function ARN
     Value: !GetAtt SoftballManagerFunction.Arn

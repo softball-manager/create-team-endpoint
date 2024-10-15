@@ -2,13 +2,13 @@ package repository
 
 import (
 	"context"
-	"softball-manager/endpoint-template/internal/pkg/appconfig"
+	"softball-manager/create-team-endpoint/internal/pkg/appconfig"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/softball-manager/common/pkg/log"
-	"github.com/softball-manager/common/pkg/player"
+	"github.com/softball-manager/common/pkg/team"
 	"go.uber.org/zap"
 )
 
@@ -19,26 +19,26 @@ type Repository struct {
 	TableName string
 }
 
-func NewRespository(ctx context.Context, cfg *appconfig.AppConfig, client *dynamodb.Client, tableName string) *Repository {
+func NewRespository(ctx context.Context, cfg *appconfig.AppConfig, client *dynamodb.Client) *Repository {
 	return &Repository{
 		Ctx:       ctx,
 		AppConfig: cfg,
 		Client:    client,
-		TableName: tableName,
+		TableName: cfg.TableName,
 	}
 }
 
-func (r *Repository) PutPlayer(pk string, name string, positions []string) error {
+func (r *Repository) CreateTeam(pk string, name string, players []string) error {
 	logger := r.AppConfig.GetLogger().With(zap.String(log.TableNameLogKey, r.TableName))
-	p := player.Player{
-		PK:        pk,
-		Name:      name,
-		Positions: positions,
-		Stats:     []player.Stats{},
+	t := team.Team{
+		PK:       pk,
+		SK:       pk,
+		TeamName: name,
+		Players:  players,
 	}
 
-	logger.Info("marshalling player struct")
-	av, err := attributevalue.MarshalMap(p)
+	logger.Info("marshalling team struct")
+	av, err := attributevalue.MarshalMap(t)
 	if err != nil {
 		return err
 	}

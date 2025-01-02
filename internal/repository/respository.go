@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
-	"softball-manager/create-team-endpoint/internal/pkg/appconfig"
+	"softball-manager/create-team-endpoint/internal/appconfig"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/softball-manager/common/pkg/log"
 	"github.com/softball-manager/common/pkg/team"
 	"go.uber.org/zap"
@@ -28,7 +29,7 @@ func NewRespository(ctx context.Context, cfg *appconfig.AppConfig, client *dynam
 	}
 }
 
-func (r *Repository) CreateTeam(pk string, name string, players []string) error {
+func (r *Repository) PutTeam(pk string, name string, players []string) error {
 	logger := r.AppConfig.GetLogger().With(zap.String(log.TableNameLogKey, r.TableName))
 	t := team.Team{
 		PK:       pk,
@@ -54,4 +55,30 @@ func (r *Repository) CreateTeam(pk string, name string, players []string) error 
 	logger.Info("successfully inserted item")
 
 	return nil
+}
+
+func (r *Repository) GetTeam(tid string) (team.Team, error) {
+	logger := r.AppConfig.GetLogger().With(zap.String(log.TableNameLogKey, r.TableName))
+
+	logger.Info("getting item from db", zap.Any(log.TeamIDLogKey, tid))
+
+	result, err := r.Client.GetItem(r.Ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: tid},
+			"sk": &types.AttributeValueMemberS{Value: tid},
+		},
+	})
+	if err != nil {
+		return team.Team{}, err
+	}
+	logger.Info("successfully retrieved item")
+
+	var t team.Team
+	err = attributevalue.UnmarshalMap(result.Item, &t)
+	if err != nil {
+		return team.Team{}, err
+	}
+
+	return t, err
 }

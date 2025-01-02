@@ -5,6 +5,9 @@ Description: >
 
   Sample SAM Template for softball-manager-api-create-team
 
+Parameters:
+  Env:
+    Type: String
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -15,32 +18,86 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
 Resources:
-  SoftballManagerFunction:
+  TeamEndpointDynamoPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub DynamoDBTeamTableUsers-${Env}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:ConditionCheckItem
+          - dynamodb:PutItem
+          - dynamodb:DescribeTable
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+          Resource: !Sub arn:aws:dynamodb:${AWS::Region}:658340567265:table/team-table-${Env}
+      Roles:
+      - Ref: TeamEndpointRole
+    Metadata:
+      SamResourceId: TeamEndpointDynamoPolicy
+  TeamEndpointRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub TeamEndpointRole-${Env}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      SamResourceId: TeamEndpointRole
+  SoftballManagerTeamEndpointFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Metadata:
       BuildMethod: go1.x
+      SamResourceId: SoftballManagerTeamEndpointFunction
     Properties:
+      FunctionName: softball-manager-team-endpoint
+      Role: !GetAtt TeamEndpointRole.Arn
       CodeUri: function.zip
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
       - x86_64
       Events:
-        CatchAll:
+        GetTeam:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /team/{tid}
+            Method: GET
+        UpdateTeam:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /team/{tid}
+            Method: POST
+        CreateTeam:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /team/
             Method: POST
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          TEAMTABLENAME: team-table-local
-
+          ENV: !Ref Env
+          TEAM_TABLE_NAME: !Sub team-table-${Env}
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
-      Name:
-        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      Name: !Sub ApplicationInsights-SAM-${AWS::StackName}
       ResourceQuery:
         Type: CLOUDFORMATION_STACK_1_0
   ApplicationInsightsMonitoring:
@@ -53,12 +110,12 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  SoftballManagerAPI:
-    Description: API Gateway endpoint URL for Prod environment for First Function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/team/"
-  SoftballManagerFunction:
-    Description: First Lambda Function ARN
-    Value: !GetAtt SoftballManagerFunction.Arn
-  SoftballManagerFunctionIamRole:
-    Description: Implicit IAM Role created for Softball Manager Function
-    Value: !GetAtt SoftballManagerFunction.Arn
+  SoftballManagerTeamEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Env}/team/"
+  SoftballManagerTeamEndpointFunction:
+    Description: Team Endpoint Lambda Function ARN
+    Value: !GetAtt SoftballManagerTeamEndpointFunction.Arn
+  SoftballManagerTeamEndpointFunctionIamRole:
+    Description: Implicit IAM Role created for Team Endpoint Function
+    Value: !GetAtt SoftballManagerTeamEndpointFunction.Arn
